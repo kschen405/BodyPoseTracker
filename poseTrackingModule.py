@@ -47,29 +47,37 @@ class PoseTracking:
 
     def findPosition(self, img, draw=True):
         self.lmList = []
+        self.dict = {}
         if self.results.pose_landmarks != None:
             for id, lm in enumerate(self.results.pose_landmarks.landmark):
                 h, w, c = img.shape
                 print(id, lm)
                 cx, cy = int(lm.x * w), int(lm.y * h)
                 self.lmList.append([id, cx, cy])
+                self.dict[id] = (cx, cy)
                 if draw:
                     cv2.circle(img, (cx, cy), 5, (255, 0, 0), cv2.FILLED)
         return self.lmList
 
+    def markAngle(self, img):
+        cv2.line(img, self.dict[14], self.dict[12], (0, 0, 255), 5)
+        cv2.line(img, self.dict[14], self.dict[16], (0, 0, 255), 5)
+
 
 def main():
-    cap = cv2.VideoCapture("videos/7.mp4")
+    cap = cv2.VideoCapture("testVideos\/flat\/20220112_130536L.mp4")
     pTime = 0
     Tracker = PoseTracking()
     while True:
         success, img = cap.read()
         img = Tracker.findPose(img, draw=True)
         lmList = Tracker.findPosition(img, draw=True)
+        Tracker.markAngle(img)
         if len(lmList) != 0:
-            print(lmList[13])
+            print(lmList[14])
             cv2.circle(
-                img, (lmList[13][1], lmList[13][2]), 12, (147, 36, 2), 5, cv2.FILLED
+                img, (lmList[14][1], lmList[14][2]
+                      ), 5, (0, 0, 255), 5  # , cv2.FILLED
             )
         cTime = time.time()
         if cTime != pTime:
@@ -79,8 +87,10 @@ def main():
         pTime = cTime
 
         cv2.putText(
-            img, str(int(fps)), (70, 50), cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 4
+            img, f"FPS: {int(fps)}", (70,
+                                      100), cv2.FONT_HERSHEY_PLAIN, 4, (255, 255, 255), 4
         )
+
         cv2.imshow("Image", img)
         cv2.waitKey(1)
 
